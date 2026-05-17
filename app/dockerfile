@@ -1,0 +1,26 @@
+# 1. Usamos una imagen de Python oficial
+FROM python:3.9-slim
+
+# 2. Instalamos TODAS las dependencias de compilación necesarias
+RUN apt-get update && apt-get install -y \
+    gcc \
+    python3-dev \
+    libpq-dev \
+    musl-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# 3. Directorio de trabajo
+WORKDIR /app
+
+# 4. Copiar e instalar (Actualizamos pip primero para evitar errores de wheel)
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# 5. Copiar el resto del código
+COPY app.py .
+
+# 6. Exponer puerto y comando de ejecución
+EXPOSE 5000
+CMD ["gunicorn", "-k", "gevent", "-b", "0.0.0.0:5000", "app:app"]

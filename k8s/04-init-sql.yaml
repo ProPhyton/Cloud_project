@@ -1,0 +1,21 @@
+# ------------------------------------------------------------
+# ConfigMap con script SQL que crea las tablas
+# (Ejercicio 11_web-app)
+# ------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-sql
+data:
+  init.sql: |
+    CREATE TABLE IF NOT EXISTS polls (
+        id SERIAL PRIMARY KEY,
+        question VARCHAR(255) NOT NULL,
+        options TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS votes (
+        id SERIAL PRIMARY KEY,
+        poll_id INTEGER REFERENCES polls(id),
+        option_index INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );

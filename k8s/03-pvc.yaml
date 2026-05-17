@@ -1,0 +1,14 @@
+# ------------------------------------------------------------
+# PersistentVolumeClaim – 1Gi de almacenamiento
+# (Ejercicio 07_storage, 11_web-app)
+# ------------------------------------------------------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

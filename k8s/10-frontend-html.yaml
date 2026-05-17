@@ -1,0 +1,51 @@
+# ------------------------------------------------------------
+# ConfigMap con el HTML del frontend
+# (Ejercicio 09_stateless-app)
+# ------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-html
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head><title>Encuestas en Vivo</title></head>
+    <body>
+      <h1>Encuestas</h1>
+      <div id="polls"></div>
+      <script>
+        const API = '/api';
+        async function load() {
+          const r = await fetch(API + '/polls');
+          const polls = await r.json();
+          let html = '';
+          polls.forEach(p => {
+            html += `<div><h3>${p.question}</h3>`;
+            p.options.forEach((op, i) => {
+              html += `<button onclick="vote(${p.id},${i})">${op}</button> `;
+            });
+            html += `<span id="r${p.id}"></span></div>`;
+          });
+          document.getElementById('polls').innerHTML = html;
+          polls.forEach(p => results(p.id));
+        }
+        async function vote(pollId, optIdx) {
+          await fetch(API + `/polls/${pollId}/vote`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({option_index: optIdx})
+          });
+          results(pollId);
+        }
+        async function results(pollId) {
+          const r = await fetch(API + `/polls/${pollId}/results`);
+          const data = await r.json();
+          const txt = data.map(d => `${d.option}: ${d.count}`).join(', ');
+          document.getElementById('r' + pollId).textContent = txt;
+        }
+        load();
+        setInterval(load, 5000);  // actualiza cada 5 segundos
+      </script>
+    </body>
+    </html>
