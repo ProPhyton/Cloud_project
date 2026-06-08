@@ -6,8 +6,27 @@ import sys
 # La URL local donde el comando 'port-forward' expone tu frontend/backend proxy
 BASE_URL = "http://localhost:8080/api"
 
+# Bancos de datos de prueba para que el bot invente encuestas realistas
+TEMAS_PREGUNTAS = [
+    "¿Cuál es el mejor lenguaje de programación?",
+    "¿Quién ganará la Champions League este año?",
+    "¿Qué base de datos prefieres para entornos distribuidos?",
+    "¿Cuál es tu servicio favorito de Cloud Computing?",
+    "¿Cada cuánto tiempo haces commits en GitHub?",
+    "¿Qué tecnología de containerización utilizas más?"
+]
+
+BANCO_OPCIONES = [
+    ["Python", "Go", "Java", "Rust"],
+    ["Real Madrid", "Olympiacos", "Panathinaikos", "Bayern"],
+    ["PostgreSQL", "MongoDB", "Redis", "MySQL"],
+    ["Kubernetes", "Docker Desktop", "AWS", "Google Cloud"],
+    ["Cada hora", "Una vez al día", "Nunca, me gusta el riesgo"],
+    ["Docker", "Podman", "Containerd"]
+]
+
 print("==================================================")
-print("🤖 SIMULADOR DE TRÁFICO EXTERNO: BOT DE ENCUESTAS")
+print("🤖 BOT INTELIGENTE V2: CREADOR Y VOTANTE DE ENCUESTAS")
 print("==================================================")
 print("-> Apuntando a: http://localhost:8080")
 print("-> Presiona Ctrl+C para detener el bot.\n")
@@ -20,53 +39,66 @@ except requests.exceptions.ConnectionError:
     print("👉 Asegúrate de tener activo el comando: kubectl port-forward svc/frontend-service 8080:80")
     sys.exit(1)
 
+encuestas_creadas = 0
 votos_totales = 0
 
 while True:
     try:
-        # 1. El bot escanea la web para ver qué encuestas existen actualmente
-        respuesta = requests.get(f"{BASE_URL}/polls", timeout=2)
-        encuestas = respuesta.json()
+        # Decisión inteligente: 20% crear encuesta, 80% votar
+        accion = random.choices(["crear", "votar"], weights=[20, 80], k=1)[0]
 
-        if not encuestas:
-            print("📭 No hay encuestas creadas en la web todavía. Esperando...")
-            time.sleep(3)
-            continue
+        if accion == "crear":
+            # --- SIMULAR TRÁFICO DE ESCRITURA (POST /polls) ---
+            indice_aleatorio = random.randint(0, len(TEMAS_PREGUNTAS) - 1)
+            nueva_pregunta = f"{TEMAS_PREGUNTAS[indice_aleatorio]} (#{random.randint(100, 999)})"
+            nuevas_opciones = BANCO_OPCIONES[indice_aleatorio]
 
-        # 2. Selecciona una encuesta al azar (Simula al usuario eligiendo qué votar)
-        encuesta_elegida = random.choice(encuestas)
-        poll_id = encuesta_elegida["id"]
-        pregunta = encuesta_elegida["question"]
-        opciones = encuesta_elegida["options"]
+            payload_crear = {
+                "question": nueva_pregunta,
+                "options": nuevas_opciones
+            }
 
-        # 3. Identifica cuántos botones (opciones) tiene esa encuesta y elige uno al azar
-        num_opciones = len(opciones)
-        if num_opciones == 0:
-            continue
-        
-        opcion_indice_elegido = random.randint(0, num_opciones - 1)
-        nombre_opcion_elegida = opciones[opcion_indice_elegido]
+            # Tu app.py responde con la id de la nueva encuesta creada
+            respuesta = requests.post(f"{BASE_URL}/polls", json=payload_crear, timeout=2)
+            if respuesta.status_code == 201:
+                encuestas_creadas += 1
+                print(f"➕ [Creada #{encuestas_creadas}] Nueva encuesta en el sistema: \"{nueva_pregunta}\"")
 
-        # 4. Simula el CLICK en el botón enviando la petición POST exacta
-        # Estructura del JSON requerida por tu app.py: {"option_index": X}
-        payload = {"option_index": opcion_indice_elegido}
-        
-        url_voto = f"{BASE_URL}/polls/{poll_id}/vote"
-        requests.post(url_voto, json=payload, timeout=2)
+        else:
+            # --- SIMULAR TRÁFICO DE LECTURA Y VOTO (GET y POST /vote) ---
+            respuesta = requests.get(f"{BASE_URL}/polls", timeout=2)
+            encuestas = respuesta.json()
 
-        votos_totales += 1
-        print(f"🎯 [Voto #{votos_totales}] Click en botón '{nombre_opcion_elegida}' de la encuesta: \"{pregunta}\"")
+            if not encuestas:
+                print("📭 No hay encuestas en el sistema. Esperando que el bot cree una...")
+                time.sleep(2)
+                continue
 
-        # 5. Carga variable inteligente (Queries per Second variables)
-        # Introduce pausas aleatorias muy cortas para simular ráfagas de usuarios reales (Facebook style)
-        pausa = random.uniform(0.01, 0.08)  # Entre 10 y 80 milisegundos
-        time.sleep(pausa)
+            # Selecciona una encuesta y un botón de opción de manera aleatoria
+            encuesta_elegida = random.choice(encuestas)
+            poll_id = encuesta_elegida["id"]
+            pregunta = encuesta_elegida["question"]
+            opciones = encuesta_elegida["options"]
+
+            if len(opciones) == 0:
+                continue
+
+            opcion_indice = random.randint(0, len(opciones) - 1)
+            nombre_opcion = opciones[opcion_indice]
+
+            # Enviar el voto simulando el clic
+            payload_votar = {"option_index": opcion_indice}
+            requests.post(f"{BASE_URL}/polls/{poll_id}/vote", json=payload_votar, timeout=2)
+
+            votos_totales += 1
+            print(f"🎯 [Voto #{votos_totales}] Click en '{nombre_opcion}' para la encuesta: \"{pregunta}\"")
+
+        # Carga variable por segundo (QPS variables para simular picos reales)
+        time.sleep(random.uniform(0.02, 0.1))
 
     except requests.exceptions.RequestException:
-        # Si el backend empieza a colapsar por el estrés (lo cual es nuestro objetivo),
-        # el bot no se detiene con un error en rojo, sino que sigue enviando tráfico tenazmente.
-        print("🔥 Servidor saturado (Respuesta lenta)... El bot mantiene el ataque.")
+        print("🔥 El servidor está bajo mucho estrés... El bot continúa atacando.")
         time.sleep(0.1)
     except KeyboardInterrupt:
-        print("\n🛑 Bot detenido por el usuario. Total de clicks simulados:", votos_totales)
+        print(f"\n🛑 Bot detenido. Resumen: {encuestas_creadas} encuestas creadas y {votos_totales} votos inyectados.")
         break
