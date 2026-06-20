@@ -1,6 +1,5 @@
 # ------------------------------------------------------------
 # Service para el frontend (ClusterIP)
-# (Ejercicio 09_stateless-app)
 # ------------------------------------------------------------
 apiVersion: v1
 kind: Service

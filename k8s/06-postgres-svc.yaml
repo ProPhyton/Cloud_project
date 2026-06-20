@@ -1,6 +1,5 @@
 # ------------------------------------------------------------
 # Service para PostgreSQL (ClusterIP)
-# (Ejercicio 02_services)
 # ------------------------------------------------------------
 apiVersion: v1
 kind: Service

@@ -1,6 +1,5 @@
 # ------------------------------------------------------------
 # ConfigMap con script SQL que crea las tablas
-# (Ejercicio 11_web-app)
 # ------------------------------------------------------------
 apiVersion: v1
 kind: ConfigMap

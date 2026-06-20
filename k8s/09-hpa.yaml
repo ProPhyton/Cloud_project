@@ -1,6 +1,5 @@
 # ------------------------------------------------------------
 # HorizontalPodAutoscaler
-# (Ejercicio 10_autoscaling)
 # ------------------------------------------------------------
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler

@@ -1,7 +1,3 @@
-# ------------------------------------------------------------
-# ConfigMap con parámetros de conexión
-# (Ejercicio 05_configmaps, 11_web-app)
-# ------------------------------------------------------------
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,4 +5,4 @@ metadata:
 data:
   db-username: "postgres"
   db-name: "pollsdb"
-  db-host: "postgres"          # coincide con el nombre del Service
+  db-host: "postgres"        
