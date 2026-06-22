@@ -1,6 +1,3 @@
-# ================================================================
-# app.py – Encuestas en vivo (versión simplificada para clase)
-# ================================================================
 # Este backend expone una API REST para crear encuestas, votar
 # y consultar resultados. Los datos se guardan en PostgreSQL.
 # No se usa Redis; el frontend obtiene actualizaciones mediante
